@@ -108,13 +108,17 @@ data <- as.data.frame(data)
 
 
 
+
+
+
+
+
 ### To query BGEN file
-ids_to_include <- as.character(fread(options.args$`variant-name-file`[1])[,1])
-# ids_to_include = as.character(vector())
+ids_to_include <- as.character(fread(options.args$`variant-name-file`[1])[,'rsid'])
 head(ids_to_include)
 ranges_to_include = data.frame(chromosome = NULL, start = NULL, end = NULL)
 ranges_to_exclude = data.frame(chromosome = NULL, start = NULL, end = NULL)
-ids_to_exclude  = as.character(vector())
+ids_to_exclude    = as.character(vector())
 
 Mtest = setgenoTest_bgenDosage(options.args$bgen[1],
                                options.args$`bgen-bgi`[1],
@@ -127,6 +131,10 @@ if(Mtest == 0){
    stop("Number of variants to be tested is 0")
 }
 SetSampleIdx(1:nrow(data), nrow(data))
+
+
+
+
 
 
 
@@ -149,9 +157,18 @@ obj.null = SPAGE_Null_Model(null.formula, subjectID = data[,options.args$`sample
 
 
 
+
+
 ### Get environmental factors
 Envn.mtx <- as.matrix(data[,options.args$`environmental-factors`[1]])
 rm(data)
+
+
+
+
+
+
+
 
 
 
@@ -172,6 +189,7 @@ OUT = NULL
 idx = 1;
 minMAC  = as.numeric(options.args$minMAC[1])
 nSNPs.out = length(ids_to_include)
+print(Sys.time())
 while(idx <= Mtest){
        Gx = getDosage_bgen_withquery()
 
@@ -211,8 +229,8 @@ while(idx <= Mtest){
                               BetaG.SPA    = as.numeric(options.args$`BetaG-SPA`[1]),
                               G.Model = options.args$`G-Model`[1])
       out = c(rsid, round(MAC,2), MAC.case, CHR, POS, REF, ALT, out.tmp)
-       OUT = rbind(OUT, out)
-     }
+      OUT = rbind(OUT, out)
+    }
 
 #     ### summarize all results
     if(idx %% nSNPs.out == 0 | idx == Mtest){
@@ -223,7 +241,7 @@ while(idx <= Mtest){
     idx=idx+1
  }
  print("Finished")
-
+ print(Sys.time())
 
 #########################################################
 

@@ -22,18 +22,18 @@ task run_tests {
 		dstat -c -d -m --nocolor ${monitoring_freq} > system_resource_usage.log &
 		atop -x -P PRM ${monitoring_freq} | grep '(R)' > process_resource_usage.log &
 
-		Rscript spage_script.R \
+		Rscript /SPAGE.R \
 			--bgen ${genofile} \
 			--bgen-bgi ${genofile}.bgi \
 			--variant-name-file variants.txt \
 			--pheno-file ${phenofile} \
 			--pheno-name ${outcome} \
 			--environmental-factors ${exposure_names} \
-			${"--covar-names" + covar_names} \
+			${"--covar-names " + covar_names} \
 			--sampleid-name ${sample_id_header} \
 			--delimiter ${delimiter} \
 			--min-maf ${maf} \
-			--min-MAC ${mac} \
+			--minMAC ${mac} \
 			--out spage_res
 	}
 
@@ -106,21 +106,21 @@ workflow run_GEM {
 		}
 	}
 
-	#call cat_results {
-	#	input:
-	#		results_array = run_tests.out
-	#}
+	call cat_results {
+		input:
+			results_array = run_tests.out
+	}
 
-	#output {
-	#	File results = cat_results.all_results
-	#	Array[File] system_resource_usage = run_tests.system_resource_usage
-	#	Array[File] process_resource_usage = run_tests.process_resource_usage
-	#}
+	output {
+		File results = cat_results.all_results
+		Array[File] system_resource_usage = run_tests.system_resource_usage
+		Array[File] process_resource_usage = run_tests.process_resource_usage
+	}
 
 	parameter_meta {
 		genofiles: "Array of genotype filepaths in .bgen format."
-		maf: "Minor allele frequency threshold for pre-filtering variants as a fraction (default is 0.005)."
-		samplefile: "Optional .sample file accompanying the .bgen file. Required for proper function if .bgen does not store sample identifiers."
+		maf: "Minimum minor allele frequency threshold for pre-filtering variants as a fraction (default is 0.005)."
+		samplefile: "Optional .sample file accompanying the .bgen file. Required for proper function if .bgen does not store sample identifiers. NOT YET IMPLEMENTED -- phenotype file currently must exactly match genotype file sample set and ordering."
 		phenofile: "Phenotype filepath."	
 		sample_id_header: "Optional column header name of sample ID in phenotype file."
 		outcome: "Column header name of phenotype data in phenotype file."
@@ -136,7 +136,7 @@ workflow run_GEM {
         meta {
                 author: "Kenny Westerman"
                 email: "kewesterman@mgh.harvard.edu"
-                description: "Run interaction tests using SPAGE and return a table of summary statistics for K-DF interaction and (K+1)-DF joint tests."
+                description: "Run interaction tests for binary traits using SPAGE and return a table of summary statistics for K-DF interaction and (K+1)-DF joint tests. NOTE: This workflow only includes the basic interaction testing step calling the SPAGE R function. It does not yet include input phenotype alignment to a sample file or output processing to match a pre-specified formatting and set of fields."
         }
 }
 
