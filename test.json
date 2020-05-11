@@ -1,11 +1,11 @@
 {
-  "run_GEM.genofiles": ["testfiles/sim_N10k_M100k_8bits.bgen"],
-  "run_GEM.maf": "0.001",
-  "run_GEM.phenofile": "testfiles/sim_N10k_M100k.pheno",
-  "run_GEM.sample_id_header": "sampleid",
-  "run_GEM.outcome": "bin_pheno",
-  "run_GEM.exposure_names": "exp1",
-  "run_GEM.covar_names": "cov1 cov2",
-  "run_GEM.memory": "1",
-  "run_GEM.disk": "1"
+  "run_SPAGE.genofiles": ["testfiles/example_8bits.bgen"],
+  "run_SPAGE.maf": "0.001",
+  "run_SPAGE.phenofile": "testfiles/example_8bits.pheno",
+  "run_SPAGE.sample_id_header": "sampleid",
+  "run_SPAGE.outcome": "bin_pheno",
+  "run_SPAGE.exposure_names": "exp1",
+  "run_SPAGE.covar_names": "cov1 cov2",
+  "run_SPAGE.memory": "1",
+  "run_SPAGE.disk": "1"
 }
