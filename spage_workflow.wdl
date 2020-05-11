@@ -69,7 +69,7 @@ task cat_results {
 }
 
 
-workflow run_GEM {
+workflow run_SPAGE {
 
 	Array[File] genofiles
 	Float? maf = 0.005
