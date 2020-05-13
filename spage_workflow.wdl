@@ -1,3 +1,29 @@
+task process_phenos {
+	
+	File phenofile
+	File? samplefile
+	String sample_id_header
+	String outcome
+	String exposure
+	String covar_names
+	String? delimiter
+	String? missing
+	Int ppmem
+
+	command {
+		Rscript /format_spage_phenos.R ${phenofile} ${sample_id_header} ${outcome} ${exposure} "${covar_names}" "${delimiter}" ${missing} "${samplefile}"
+	}
+
+	runtime {
+		docker: "quay.io/large-scale-gxe-methods/spage-workflow"
+		memory: ppmem + "GB"
+	}
+
+        output {
+                File pheno_fmt = "spage_phenotypes.csv"
+	}
+}
+
 task run_tests {
 
 	File genofile
@@ -9,7 +35,6 @@ task run_tests {
 	String outcome
 	String exposure_names
 	String? covar_names
-	String delimiter
 	String missing
 	Int memory
 	Int disk
@@ -31,7 +56,7 @@ task run_tests {
 			--environmental-factors ${exposure_names} \
 			${"--covar-names " + covar_names} \
 			--sampleid-name ${sample_id_header} \
-			--delimiter ${delimiter} \
+			--delimiter , \
 			--min-maf ${maf} \
 			--minMAC ${mac} \
 			--out spage_res
@@ -47,6 +72,26 @@ task run_tests {
 		File out = "spage_res"
 		File system_resource_usage = "system_resource_usage.log"
 		File process_resource_usage = "process_resource_usage.log"
+	}
+}
+
+task standardize_output {
+
+	File resfile
+	String outfile_base = basename(resfile)
+	String outfile = "${outfile_base}.fmt"
+
+	command {
+		Rscript /format_spage_output.R ${resfile} ${outfile}
+	}
+
+	runtime {
+		docker: "quay.io/large-scale-gxe-methods/spage-workflow"
+		memory: "2 GB"
+	}
+
+        output {
+                File res_fmt = "${outfile}"
 	}
 }
 
@@ -86,6 +131,21 @@ workflow run_SPAGE {
 	Int? disk = 50
 	Int? monitoring_freq = 1
 
+	Int ppmem = 2 * ceil(size(phenofile, "GB")) + 1
+
+	call process_phenos {
+		input:
+			phenofile = phenofile,
+			samplefile = samplefile,
+			sample_id_header = sample_id_header,
+			outcome = outcome,
+			exposure = exposure_names,
+			covar_names = covar_names,
+			delimiter = delimiter,
+			missing = missing,
+			ppmem = ppmem
+	}
+
 	scatter (i in range(length(genofiles))) {
 		call run_tests {
 			input:
@@ -93,18 +153,25 @@ workflow run_SPAGE {
 				maf = maf,
 				mac = mac,
 				samplefile = samplefile,
-				phenofile = phenofile,
+				phenofile = process_phenos.pheno_fmt,
 				sample_id_header = sample_id_header,
 				outcome = outcome,
 				exposure_names = exposure_names,
 				covar_names = covar_names,
-				delimiter = delimiter,
 				missing = missing,
 				memory = memory,
 				disk = disk,
 				monitoring_freq = monitoring_freq
 		}
 	}
+
+	#scatter (resfile in run_tests.out) {
+	#	call standardize_output {
+	#		input:
+	#			resfile = resfile,
+	#			exposure = exposure_names
+	#	}
+	#}	
 
 	call cat_results {
 		input:

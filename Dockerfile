@@ -16,4 +16,8 @@ RUN wget http://bitbucket.org/gavinband/bgen/get/master.tar.gz \
 	&& ./waf 
 ENV BGENIX /gavinband-bgen-44fcabbc5c38/build/apps/bgenix
 
+RUN R -e "options(repos=structure(c(CRAN='https://cloud.r-project.org/'))); install.packages(c('dplyr', 'readr'))"
+COPY format_spage_phenos.R format_spage_output.R /
+RUN apt-get update && apt-get install tzdata
+
 RUN apt-get update && apt-get install -y dstat atop
