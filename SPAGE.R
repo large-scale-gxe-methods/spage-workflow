@@ -160,7 +160,8 @@ obj.null = SPAGE_Null_Model(null.formula, subjectID = data[,options.args$`sample
 
 
 ### Get environmental factors
-Envn.mtx <- as.matrix(data[,options.args$`environmental-factors`[1]])
+Envn.mtx <- data[,options.args$`environmental-factors`[1], drop = FALSE]
+rownames(Envn.mtx) <- data[,options.args$`sampleid-name`[1]]
 rm(data)
 
 
@@ -194,6 +195,7 @@ while(idx <= Mtest){
        Gx = getDosage_bgen_withquery()
 
        g = Gx$dosages
+       head(g)
        g1 = round(g)
        g1.case=g1[obj.null$y==1]
        MAC = min(sum(g1),sum(2-g1))
