@@ -6,8 +6,8 @@ task process_phenos {
 	String outcome
 	String exposure
 	String covar_names
-	String? delimiter
-	String? missing
+	String delimiter
+	String missing
 	Int ppmem
 
 	command {
@@ -78,11 +78,9 @@ task run_tests {
 task standardize_output {
 
 	File resfile
-	String outfile_base = basename(resfile)
-	String outfile = "${outfile_base}.fmt"
 
 	command {
-		Rscript /format_spage_output.R ${resfile} ${outfile}
+		Rscript /format_spage_output.R ${resfile}
 	}
 
 	runtime {
@@ -91,7 +89,7 @@ task standardize_output {
 	}
 
         output {
-                File res_fmt = "${outfile}"
+                File res_fmt = "res_fmt.txt"
 	}
 }
 
@@ -165,17 +163,16 @@ workflow run_SPAGE {
 		}
 	}
 
-	#scatter (resfile in run_tests.out) {
-	#	call standardize_output {
-	#		input:
-	#			resfile = resfile,
-	#			exposure = exposure_names
-	#	}
-	#}	
+	scatter (resfile in run_tests.out) {
+		call standardize_output {
+			input:
+				resfile = resfile
+		}
+	}	
 
 	call cat_results {
 		input:
-			results_array = run_tests.out
+			results_array = standardize_output.res_fmt
 	}
 
 	output {

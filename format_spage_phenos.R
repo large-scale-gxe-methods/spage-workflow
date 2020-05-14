@@ -9,10 +9,10 @@ names(args) <- c("phenofile", "sample_id_header", "outcome", "exposure", "covar_
 phenos <- read_delim(args["phenofile"], delim=args["delimiter"], na=args["missing"])
 
 if (args["samplefile"] != "") {  # Optional sample file ensures correct ordering of IDs
-    ids <- read_delim(args["samplefile"], header=F, skip=2) %>%
+    ids <- read_delim(args["samplefile"], delim=" ", col_names=F, skip=2) %>%
 	select(1) %>%
 	setNames(args["sample_id_header"])
-    phenos <- left_join(ids, phenos, by=args["sample_id_header"])
+    phenos <- left_join(ids, phenos, by=unname(args["sample_id_header"]))
 }
 
 covars <- if (args["covar_names"] == "") character() else strsplit(args["covar_names"], " ")[[1]]

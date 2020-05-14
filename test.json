@@ -1,6 +1,7 @@
 {
   "run_SPAGE.genofiles": ["testfiles/example_8bits.bgen"],
   "run_SPAGE.maf": "0.001",
+  "run_SPAGE.samplefile": "testfiles/example_8bits.sample",
   "run_SPAGE.phenofile": "testfiles/example_8bits.pheno",
   "run_SPAGE.sample_id_header": "sampleid",
   "run_SPAGE.outcome": "bin_pheno",
