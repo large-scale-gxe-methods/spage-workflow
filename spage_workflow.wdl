@@ -41,16 +41,14 @@ task run_tests {
 	Int monitoring_freq
 
 	command {
-		$BGENIX -g ${genofile} -index 
-		$BGENIX -g ${genofile} -list > variants.txt
+	#	$BGENIX -g ${genofile} -index 
+	#	$BGENIX -g ${genofile} -list > variants.txt
 
 		dstat -c -d -m --nocolor ${monitoring_freq} > system_resource_usage.log &
 		atop -x -P PRM ${monitoring_freq} | grep '(R)' > process_resource_usage.log &
 
 		Rscript /SPAGE.R \
 			--bgen ${genofile} \
-			--bgen-bgi ${genofile}.bgi \
-			--variant-name-file variants.txt \
 			--pheno-file ${phenofile} \
 			--pheno-name ${outcome} \
 			--environmental-factors ${exposure_names} \
@@ -61,6 +59,8 @@ task run_tests {
 			--minMAC ${mac} \
 			--out spage_res
 	}
+	#		--bgen-bgi ${genofile}.bgi \
+	#		--variant-name-file variants.txt \
 
 	runtime {
 		docker: "quay.io/large-scale-gxe-methods/spage-workflow"

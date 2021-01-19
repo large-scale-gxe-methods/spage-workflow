@@ -1,7 +1,7 @@
 options(stringsAsFactors = F)
 library(data.table)
 library(SPAGE)
-library(SAIGE)
+library(bgenR)
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -17,10 +17,11 @@ options.names <- sapply(listoptions,function(x){
 names(options.args) <- unlist(options.names)
 
 
-spage.options <- c('bgen', 'bgen-bgi', 'variant-name-file', 'pheno-file', 'pheno-name',
-             'environmental-factors', 'covar-names', 'sampleid-name', 'delimiter',
-             'cutoff', 'impute-method', 'missing-cutoff', 'min-maf', 'Firth-cutoff',
-             'BetaG-cutoff', 'BetaG-SPA', 'G-Model', 'minMAC', 'out', 'help')
+spage.options <- c('bgen', #'bgen-bgi', 'variant-name-file', 
+		   'pheno-file', 'pheno-name',
+                   'environmental-factors', 'covar-names', 'sampleid-name', 'delimiter',
+                   'cutoff', 'impute-method', 'missing-cutoff', 'min-maf', 'Firth-cutoff',
+                   'BetaG-cutoff', 'BetaG-SPA', 'G-Model', 'minMAC', 'out', 'help')
 
 if(!all(names(options.args) %in% spage.options)){
    stop(paste0('Option(s) ', paste(names(options.args)[!(names(options.args) %in% spage.options)]), ' invalid'))
@@ -36,12 +37,12 @@ if('help' %in% names(options.args)){
 if(length(options.args$bgen) == 0){
    stop('No bgen file specified')
 }
-if(length(options.args$`bgen-bgi`) == 0){
-  stop('No bgen index file specified')
-}
-if(length(options.args$`variant-name-file`) == 0){
-  stop('No file with variant names specified')
-}
+# if(length(options.args$`bgen-bgi`) == 0){
+#   stop('No bgen index file specified')
+# }
+#if(length(options.args$`variant-name-file`) == 0){
+#  stop('No file with variant names specified')
+#}
 if(length(options.args$`pheno-file`) == 0){
   stop('No phenotype file specified')
 } else if(length(options.args$`pheno-file`) > 1){
@@ -114,23 +115,28 @@ data <- as.data.frame(data)
 
 
 ### To query BGEN file
-ids_to_include <- as.character(fread(options.args$`variant-name-file`[1])[,'rsid'])
-head(ids_to_include)
-ranges_to_include = data.frame(chromosome = NULL, start = NULL, end = NULL)
-ranges_to_exclude = data.frame(chromosome = NULL, start = NULL, end = NULL)
-ids_to_exclude    = as.character(vector())
+bgen <- open_bgen(options.args$bgen[1])
+# ids_to_include <- as.character(fread(options.args$`variant-name-file`[1])[,'rsid'])
+# head(ids_to_include)
+# ranges_to_include = data.frame(chromosome = NULL, start = NULL, end = NULL)
+# ranges_to_exclude = data.frame(chromosome = NULL, start = NULL, end = NULL)
+# ids_to_exclude    = as.character(vector())
+# 
+# Mtest = setgenoTest_bgenDosage(options.args$bgen[1],
+#                                options.args$`bgen-bgi`[1],
+#                                ranges_to_exclude = ranges_to_exclude,
+#                                ranges_to_include = ranges_to_include,
+#                                ids_to_exclude= ids_to_exclude,
+#                                ids_to_include=ids_to_include)
 
-Mtest = setgenoTest_bgenDosage(options.args$bgen[1],
-                               options.args$`bgen-bgi`[1],
-                               ranges_to_exclude = ranges_to_exclude,
-                               ranges_to_include = ranges_to_include,
-                               ids_to_exclude= ids_to_exclude,
-                               ids_to_include=ids_to_include)
-
-if(Mtest == 0){
+if(bgen$M == 0){
    stop("Number of variants to be tested is 0")
 }
-SetSampleIdx(1:nrow(data), nrow(data))
+if(bgen$N == 0){
+  stop("Number of samples to be tested is 0")
+}
+Mtest = bgen$M
+#SetSampleIdx(1:nrow(data), nrow(data))
 
 
 
@@ -189,18 +195,18 @@ cat(sprintf("G.Model: '%s'", options.args$`G-Model`[1]), "\n")
 OUT = NULL
 idx = 1;
 minMAC  = as.numeric(options.args$minMAC[1])
-nSNPs.out = length(ids_to_include)
+nSNPs.out = bgen$M
 print(Sys.time())
 while(idx <= Mtest){
-       Gx = getDosage_bgen_withquery()
+       Gx = query_bgen()
 
-       g = Gx$dosages
-       head(g)
+       g = Gx$Dosages
+       #head(g)
        g1 = round(g)
        g1.case=g1[obj.null$y==1]
        MAC = min(sum(g1),sum(2-g1))
        MAC.case = min(sum(g1.case),sum(2-g1.case))
-       AF = Gx$variants$AF
+       AF = Gx$AF
       if(AF < 0.5){
          MAF = AF
       }else{
@@ -208,12 +214,12 @@ while(idx <= Mtest){
       }
 
      # rowHeader=as.vector(unlist(Gx$variants))
-     SNPID = Gx$variants$SNPID
-     rsid = Gx$variants$rsid
-     CHR = Gx$variants$chromosome
-     POS = Gx$variants$position
-     REF = Gx$variants$allele0
-     ALT = Gx$variants$allele1
+     SNPID = Gx$SNPID
+     rsid = Gx$RSID
+     CHR = Gx$Chromosome
+     POS = Gx$Position
+     REF = Gx$Allele1
+     ALT = Gx$Allele2
 
 
      # if(MAC<minMAC | markerInfo < minInfo | MAC.case < minMAC.case){}
