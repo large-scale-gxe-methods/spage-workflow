@@ -107,6 +107,7 @@ if(length(options.args$out) == 0){
 data <- fread(options.args$`pheno-file`[1], sep = options.args$delimiter[1])
 data <- as.data.frame(data)
 
+keep <- complete.cases(data)
 
 
 
@@ -168,6 +169,7 @@ obj.null = SPAGE_Null_Model(null.formula, subjectID = data[,options.args$`sample
 ### Get environmental factors
 Envn.mtx <- data[,options.args$`environmental-factors`[1], drop = FALSE]
 rownames(Envn.mtx) <- data[,options.args$`sampleid-name`[1]]
+Envn.mtx <- Envn.mtx[keep,]
 rm(data)
 
 
@@ -200,7 +202,7 @@ print(Sys.time())
 while(idx <= Mtest){
        Gx = query_bgen()
 
-       g = Gx$Dosages
+       g = Gx$Dosages[keep]
        #head(g)
        g1 = round(g)
        g1.case=g1[obj.null$y==1]

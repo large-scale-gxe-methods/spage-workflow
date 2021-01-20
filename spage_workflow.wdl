@@ -29,7 +29,6 @@ task run_tests {
 	File genofile
 	Float maf
 	Int mac
-	File? samplefile
 	File phenofile
 	String sample_id_header
 	String outcome
@@ -150,7 +149,6 @@ workflow run_SPAGE {
 				genofile = genofiles[i],
 				maf = maf,
 				mac = mac,
-				samplefile = samplefile,
 				phenofile = process_phenos.pheno_fmt,
 				sample_id_header = sample_id_header,
 				outcome = outcome,
